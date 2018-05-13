@@ -6,6 +6,9 @@ from flask_wtf.csrf import CSRFProtect
 from flask_session import Session
 from config import config_dict
 
+# 创建SQLAlchemy对象
+db = SQLAlchemy()
+
 
 # 工厂方法
 def create_app(config_name):
@@ -13,8 +16,8 @@ def create_app(config_name):
     config_cls = config_dict[config_name]
     app.config.from_object(config_cls)
 
-    # 创建SQLAlchemy对象
-    db = SQLAlchemy(app)
+    # db对象进行app关联
+    db.init_app(app)
     # 创建redis连接对象
     redis_store = redis.StrictRedis(host=config_cls.REDIS_HOST, port=config_cls.REDIS_PORT)
     # 开启CSRF保护
