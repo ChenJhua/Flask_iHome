@@ -1,4 +1,5 @@
 # coding=utf-8
+import redis
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
@@ -12,16 +13,26 @@ class Config(object):
     # 关闭追踪数据库的修改
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    # redis数据库配置
+    REDIS_HOST = "192.168.158.136"
+    REDIS_PORT = 6379
+
+
+
 app = Flask(__name__)
 app.config.from_object(Config)
 
 
 # 创建SQLAlchemy对象
 db = SQLAlchemy(app)
+# 创建redis连接对象
+redis_store = redis.StrictRedis(host=Config.REDIS_HOST, port=Config.REDIS_PORT)
 
 
 @app.route("/")
 def index():
+    # 测试redis
+    redis_store.set("name", "itcast")
     return "index"
 
 
