@@ -44,5 +44,12 @@ class TestingConfig(Config):
     # 开启测试标志
     TESTING = True
 
+config_dict = {
+    "development": DevelopmentConfig,
+    "production": ProductionConfig,
+    "testing": TestingConfig,
+}
+
+
 
 
