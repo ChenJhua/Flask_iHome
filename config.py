@@ -4,7 +4,7 @@ import redis
 
 class Config(object):
     """配置类"""
-    DEBUG = True
+
     # mysql数据库相关配置
     # 设置数据库的链接地址
     SQLALCHEMY_DATABASE_URI = "mysql://root:mysql@192.168.158.136:3306/ihome_sz08"
@@ -24,3 +24,25 @@ class Config(object):
     # SESSION_USE_SIGNER = True
     # 设置session过期时间
     PERMANENT_SESSION_LIFETIME = 86400 * 2
+
+
+class DevelopmentConfig(Config):
+    """开发环境中配置类"""
+    DEBUG = True
+
+
+class ProductionConfig(Config):
+    """生产环境中的配置类"""
+    # 设置数据库的链接地址
+    SQLALCHEMY_DATABASE_URI = "mysql://root:mysql@192.168.158.136:3306/ihome"
+
+
+class TestingConfig(Config):
+    """测试环境中的配置类"""
+    # 设置数据库的链接地址
+    SQLALCHEMY_DATABASE_URI = "mysql://root:mysql@192.168.158.136:3306/ihome"
+    # 开启测试标志
+    TESTING = True
+
+
+
