@@ -6,6 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
 
 from config import config_dict
+from ihome.utils.commons import RegexConvter
 
 
 # 创建SQLAlchemy对象
@@ -32,6 +33,9 @@ def create_app(config_name):
 
     # session信息存储
     Session(app)
+
+    # 添加路由转换器
+    app.url_map.converters["re"] = RegexConvter
 
     from ihome.api_1_0 import api
     # 3.注册蓝图对象
