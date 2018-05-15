@@ -12,11 +12,14 @@ html = Blueprint("html", __name__)
 @html.route("/<re('.*'):file_name>")
 def get_static_html(file_name):
     # 获取静态文件目录下方对应的静态文件的内容并返回给浏览器
+    # print(file_name)
     if file_name == "":
         # 说明用户访问的是跟路径，默认返回index.html
         file_name = "index.html"
+    # print(file_name)
     if file_name != "favicon.ico":
         file_name = "html/" + file_name
+    # print(file_name)
 
     return current_app.send_static_file(file_name)
 

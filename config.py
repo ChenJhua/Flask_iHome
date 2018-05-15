@@ -7,7 +7,7 @@ class Config(object):
 
     # mysql数据库相关配置
     # 设置数据库的链接地址
-    SQLALCHEMY_DATABASE_URI = "mysql://root:mysql@192.168.158.136:3306/ihome_sz08"
+    SQLALCHEMY_DATABASE_URI = "mysql://root:mysql@127.0.0.1:3306/ihome_sz08"
     # 关闭追踪数据库的修改
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
