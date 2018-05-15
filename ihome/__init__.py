@@ -17,6 +17,7 @@ redis_store = None
 # 工厂方法
 def create_app(config_name):
     app = Flask(__name__)
+    # 获取配置类
     config_cls = config_dict[config_name]
     app.config.from_object(config_cls)
 
@@ -35,6 +36,8 @@ def create_app(config_name):
     from ihome.api_1_0 import api
     # 3.注册蓝图对象
     app.register_blueprint(api, url_prefix="/api/v1.0")
+    from ihome.web_html import html
+    app.register_blueprint(html)
 
     return app
 
