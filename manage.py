@@ -1,7 +1,7 @@
 # coding=utf-8
 from flask.ext.migrate import Migrate, MigrateCommand
 from flask_script import Manager
-from ihome import create_app, db
+from ihome import create_app, db, models
 
 
 # 需求：不修改业务逻辑的代码，只通过修改manage.py文件中的一句代码获取不同配置环境中的app
