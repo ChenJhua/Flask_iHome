@@ -13,16 +13,6 @@ Migrate(app, db)
 manager.add_command("db", MigrateCommand)
 
 
-@app.route("/", methods=["GET", "POST"])
-def index():
-    # 测试redis
-    # redis_store.set("name", "itcast")
-
-    # 测试session存储
-    # session["name"] = "itheima"
-    return "index"
-
-
 if __name__ == "__main__":
     manager.run()
     # app.run()
