@@ -34,7 +34,7 @@ def create_app(config_name):
 
     from ihome.api_1_0 import api
     # 3.注册蓝图对象
-    app.register_blueprint(api)
+    app.register_blueprint(api, url_prefix="/api/v1.0")
 
     return app
 
