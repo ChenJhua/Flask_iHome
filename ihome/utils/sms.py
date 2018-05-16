@@ -1,6 +1,6 @@
-# coding = utf-8
-from ihome.libs.yuntongxun.CCPRestSDK import REST
+# coding=utf-8
 import ConfigParser
+from ihome.libs.yuntongxun.CCPRestSDK import REST
 
 accountSid = '8aaf070863399ed9016359ba4fed1500'
 # 说明：主账号，登陆云通讯网站后，可在控制台首页中看到开发者主账号ACCOUNT SID。
