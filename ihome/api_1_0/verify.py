@@ -15,7 +15,7 @@ from flask import current_app
 from ihome.utils.sms import CCP
 
 
-@api.route("/sms_code", method=["POST"])
+@api.route("/sms_code", methods=["POST"])
 def send_sms_code():
     """
     发送短信验证码：
@@ -51,7 +51,7 @@ def send_sms_code():
         return jsonify(errno=RET.DATAERR, errmsg="图片验证码错误")
     # 4.使用云通讯发送短信验证码
     # 4.1随机生成一个6位短信验证码
-    sms_code = "%06s" % random.randint(0, 999999)
+    sms_code = "%06d" % random.randint(0, 999999)
     try:
         res = CCP().send_template_sms(mobile, [sms_code, constants.SMS_CODE_REDIS_EXPIRES/60], 1)
     except Exception as e:
