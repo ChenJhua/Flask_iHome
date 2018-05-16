@@ -54,6 +54,9 @@ function sendSMSCode() {
         "url": "/api/v1.0/sms_code", // 请求url地址
         "type": "post", // 请求方式，默认是get
         "contentType": "application/json", // 请求数据的格式
+        "headers":{
+           "X-CSRFToken": getCookie("csrf_token")
+        },
         "data": JSON.stringify(params),  // 请求时传递数据
         "dataType": "json",  // 期望服务器返回数据类型
         "success": function (resp) {

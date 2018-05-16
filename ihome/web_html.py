@@ -2,7 +2,8 @@
 # 此蓝图给浏览器提供静态页面
 from flask import Blueprint
 from flask import current_app
-
+from flask import make_response
+from flask.ext.wtf.csrf import generate_csrf
 
 html = Blueprint("html", __name__)
 
@@ -21,7 +22,13 @@ def get_static_html(file_name):
         file_name = "html/" + file_name
     # print(file_name)
 
-    return current_app.send_static_file(file_name)
+    # return current_app.send_static_file(file_name)
+    response = make_response(current_app.send_static_file(file_name))
+    # 生成一个csrf_token cookie
+    csrf_token = generate_csrf()
+    response.set_cookie("csrf_token", csrf_token)
+
+    return response
 
 
 
