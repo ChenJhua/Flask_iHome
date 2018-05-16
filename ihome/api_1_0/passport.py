@@ -50,6 +50,7 @@ def register():
     user.mobile = mobile
     user.name = mobile
     # todo:注册密码的加密
+    user.password = password
 
     # 5. 把注册用户的信息添加进数据库
     try:
