@@ -113,4 +113,62 @@ $(document).ready(function() {
     });
 
     // TODO: 注册的提交(判断参数是否为空)
-})
+    $('.form-register').submit(function (e) {
+        // 阻止表单默认提交行为
+        e.preventDefault();
+        // 自己写代码进行提交
+        var mobile = $("#mobile").val();
+        var phoneCode = $("#phonecode").val();
+        var password = $("#password").val();
+        var password2 = $("#password2").val();
+        if (!mobile) {
+            $("#mobile-err span").html("请填写正确的手机号！");
+            $("#mobile-err").show();
+            return;
+        }
+        if (!phoneCode) {
+            $("#phone-code-err span").html("请填写短信验证码！");
+            $("#phone-code-err").show();
+            return;
+        }
+        if (!password) {
+            $("#password-err span").html("请填写密码!");
+            $("#password-err").show();
+            return;
+        }
+        if (password != password2) {
+            $("#password2-err span").html("两次密码不一致!");
+            $("#password2-err").show();
+            return;
+        }
+
+        // 请求后端注册api，进行用户注册
+        var params = {
+            "mobile": mobile,
+            "sms_code": phoneCode,
+            "password": password,
+        }
+
+        $.ajax({
+            "url": "/api/v1.0/users",
+            "type": "post",
+            "contentType": "application/json",
+            "data": JSON.stringify(params),
+            "dataType": "json",
+            "headers": {
+                "X-CSRFToken": getCookie("csrf_token")
+            },
+            "success": function (resp) {
+                if(resp.errno == "0"){
+                    // 注册成功, 跳转到首页
+                    location.href = "index.html"
+
+                }else{
+                    // 注册失败
+                    $('#password2-err span').html(resp.errmsg);
+                    $('#password2-err').show();
+                }
+            }
+        })
+    })
+});
