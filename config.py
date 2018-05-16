@@ -12,7 +12,7 @@ class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # redis数据库配置
-    REDIS_HOST = "192.168.158.136"
+    REDIS_HOST = "192.168.158.139"
     REDIS_PORT = 6379
     SECRET_KEY = "1231KJ!@#!@#!#!&$%!@^%#!@^$!@^$!(^$*(!@*(&#)!*&)&"
 
