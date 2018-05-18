@@ -5,6 +5,7 @@ from flask import current_app, jsonify
 from flask import request
 from flask import session
 
+from ihome import constants
 from ihome import db
 from ihome.models import User
 from ihome.utils.image_storage import storage_image
@@ -54,7 +55,8 @@ def set_user_avatar():
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR, errmsg="记录用户头像记录失败")
     # 4. 返回应答，上传头像成功
-    return jsonify(errno=RET.OK, errmsg="上传头像成功")
+    avatar_url = constants.QINIU_DOMIN_PREFIX + key
+    return jsonify(errno=RET.OK, errmsg="上传头像成功", data={"avatar_url": avatar_url,})
 
 
 @api.route("/user")
