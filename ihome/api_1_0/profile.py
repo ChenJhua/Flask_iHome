@@ -69,6 +69,7 @@ def set_user_name():
 
 
 @api.route("/user/avatar", methods=["POST"])
+@login_required
 def set_user_avatar():
     """
     设置用户头像信息：
@@ -90,7 +91,7 @@ def set_user_avatar():
         current_app.logger.error(e)
         return jsonify(errno=RET.THIRDERR, errmsg="上传用户头像失败")
     # 3. 设置用户的头像记录
-    user_id = session.get("user_id")
+    user_id = g.user_id
 
     try:
         user = User.query.get(user_id)
@@ -115,6 +116,7 @@ def set_user_avatar():
 
 
 @api.route("/user")
+@login_required
 def get_user_info():
     """
     获取用户个人信息：

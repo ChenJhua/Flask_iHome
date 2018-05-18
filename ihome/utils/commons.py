@@ -1,5 +1,7 @@
 # coding=utf-8
 # 自定义工具类或者工具函数
+
+import functools
 from flask import g
 from flask import session, jsonify
 from werkzeug.routing import BaseConverter
@@ -17,6 +19,7 @@ class RegexConvter(BaseConverter):
 
 # 自定义登录验证装饰器
 def login_required(view_func):
+    @functools.wraps(view_func)
     def wrapper(*args, **kwargs):
         """闭包函数"""
         # 进行登录验证
