@@ -1,6 +1,7 @@
 # coding=utf-8
 # 此文件中定义和用户登录，注册有关的api
 from flask import current_app
+from flask import session
 
 from ihome import redis_store, db
 from ihome.models import User
@@ -8,6 +9,45 @@ from ihome.utils.response_code import RET
 import re
 from . import api
 from flask import request, jsonify
+
+
+@api.route("/sessions", methods=["POST"])
+def login():
+    """
+    用户登录功能
+    1.获取参数（手机号，密码）并进行校验
+    2.根据手机号去查询User信息(如果查不到，说明用户不存在)
+    3.校验登录密码是否正确
+    4.记住用户的登录状态
+    5.返回应答，登陆成功
+    :return:
+    """
+    # 1.获取参数（手机号，密码）并进行校验
+    req_dict = request.json
+    mobile = req_dict.get("mobile")
+    password = req_dict.get("password")
+
+    if not all([mobile, password]):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数不完整")
+    # 2.根据手机号去查询User信息(如果查不到，说明用户不存在)
+    try:
+        user = User.query.filter(User.mobile == mobile).first()  # None
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="查询用户信息失败")
+
+    if not user:
+        return jsonify(errno=RET.USERERR, errmsg="用户不存在")
+
+    # 3.校验登录密码是否正确
+    if not user.check_user_password(password):
+        return jsonify(errno=RET.PWDERR, errmsg="登录密码错误")
+    # 4.记住用户的登录状态
+    session["user_id"] = user.id
+    session["username"] = user.name
+    session["mobile"] = mobile
+    # 5.返回应答，登陆成功
+    return jsonify(errno=RET.OK, errmsg="登录成功")
 
 
 @api.route("/users", methods=["POST"])

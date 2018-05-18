@@ -13,7 +13,7 @@ class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # redis数据库配置
-    REDIS_HOST = "192.168.158.139"
+    REDIS_HOST = "127.0.0.1"
     REDIS_PORT = 6379
     SECRET_KEY = "1231KJ!@#!@#!#!&$%!@^%#!@^$!@^$!(^$*(!@*(&#)!*&)&"
 
@@ -37,14 +37,14 @@ class DevelopmentConfig(Config):
 class ProductionConfig(Config):
     """生产环境中的配置类"""
     # 设置数据库的链接地址
-    SQLALCHEMY_DATABASE_URI = "mysql://root:mysql@192.168.158.136:3306/ihome"
+    SQLALCHEMY_DATABASE_URI = "mysql://root:mysql@127.0.0.1:3306/ihome"
     LOG_LEVEL = logging.WARN
 
 
 class TestingConfig(Config):
     """测试环境中的配置类"""
     # 设置数据库的链接地址
-    SQLALCHEMY_DATABASE_URI = "mysql://root:mysql@192.168.158.136:3306/ihome"
+    SQLALCHEMY_DATABASE_URI = "mysql://root:mysql@127.0.0.1:3306/ihome"
     # 开启测试标志
     TESTING = True
 

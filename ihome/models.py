@@ -38,6 +38,10 @@ class User(BaseModel, db.Model):
         # 对注册用户密码进行加密处理
         self.password_hash = generate_password_hash(value)
 
+    def check_user_password(self, password):
+        """校验用户密码是否正确"""
+        return check_password_hash(self.password_hash, password)
+
 
 class Area(BaseModel, db.Model):
     """城区"""

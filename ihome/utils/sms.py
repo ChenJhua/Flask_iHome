@@ -21,11 +21,23 @@ softVersion = '2013-12-26'  # 说明：REST API版本号保持不变。
 
 
 class CCP(object):
-    def __init__(self):
-        # 初始化REST SDK
-        self.rest = REST(serverIP, serverPort, softVersion)
-        self.rest.setAccount(accountSid, accountToken)
-        self.rest.setAppId(appId)
+
+    def __new__(cls, *args, **kwargs):
+        # 判断cls是否拥有属性_instance,此属性用来保存这个类的唯一对象(单例对象)
+        if not hasattr(cls, "_instance"):
+            # 创建一个对象
+            obj = super(CCP, cls).__new__(cls, *args, **kwargs)
+            # 初始化REST SDK
+            obj.rest = REST(serverIP, serverPort, softVersion)
+            obj.rest.setAccount(accountSid, accountToken)
+            obj.rest.setAppId(appId)
+            cls._instance = obj
+
+        # 直接返回
+        return cls._instance
+
+    # def __init__(self):
+
 
     def send_template_sms(self, to, datas, tempId):
 

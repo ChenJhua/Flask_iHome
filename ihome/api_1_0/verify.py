@@ -15,6 +15,7 @@ from flask import current_app
 from ihome.utils.sms import CCP
 
 
+# 接口文档
 @api.route("/sms_code", methods=["POST"])
 def send_sms_code():
     """
