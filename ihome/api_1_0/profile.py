@@ -81,9 +81,9 @@ def get_user_info():
     if not user:
         return jsonify(errno=RET.USERERR, errmsg="用户不存在")
     # 3.组织数据，返回应答
-    resp = {
-        "user_id": user.id,
-        "username": user.name,
-        "avatar_url": user.avatar_url,
-    }
-    return jsonify(errno=RET.OK, errmsg="OK", data=resp)
+    # resp = {
+    #     "user_id": user.id,
+    #     "username": user.name,
+    #     "avatar_url": constants.QINIU_DOMIN_PREFIX + user.avatar_url if user.avatar_url else ''
+    # }
+    return jsonify(errno=RET.OK, errmsg="OK", data=user.to_dict())
