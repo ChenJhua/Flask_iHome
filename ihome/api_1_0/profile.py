@@ -40,7 +40,19 @@ def set_user_name():
 
     if user:
         return jsonify(errno=RET.DATAEXIST, errmsg="用户名已存在")
+
     # 3. 设置用户的用户名
+    user_id = session.get("user_id")
+
+    try:
+        user = User.query.get(user_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="查询用户信息失败")
+
+    if not user:
+        return jsonify(errno=RET.USERERR, errmsg="用户不存在")
+
     user.name = username
 
     try:
