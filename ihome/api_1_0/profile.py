@@ -2,18 +2,21 @@
 
 # 此文件定义和用户个人信息相关api接口
 from flask import current_app, jsonify
+from flask import g
 from flask import request
 from flask import session
 
 from ihome import constants
 from ihome import db
 from ihome.models import User
+from ihome.utils.commons import login_required
 from ihome.utils.image_storage import storage_image
 from ihome.utils.response_code import RET
 from . import api
 
 
 @api.route("/user/name", methods=["PUT"])
+@login_required
 def set_user_name():
     """
     设置用户的用户名：
@@ -42,8 +45,8 @@ def set_user_name():
         return jsonify(errno=RET.DATAEXIST, errmsg="用户名已存在")
 
     # 3. 设置用户的用户名
-    user_id = session.get("user_id")
-
+    # user_id = session.get("user_id")
+    user_id = g.user_id
     try:
         user = User.query.get(user_id)
     except Exception as e:
@@ -122,7 +125,7 @@ def get_user_info():
     :return:
     """
     # 1.获取登录用户id
-    user_id = session.get("user_id")
+    user_id = g.user_id
     # 2.根据id查询用户的信息（如果查不到，说明用户不存在）
     try:
         user = User.query.get(user_id)
