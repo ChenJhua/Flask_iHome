@@ -2,9 +2,10 @@
 import qiniu
 
 
-access_key = ""
-secret_key = ""
-# 存储空间的名称
+access_key = "uzc59bVURbUbazey9vrexXKocNKBUN8NuLijk57N"
+secret_key = "-9lenw28jU2REojvGkcsEPWk5Nm9V2HIVqb5Nkts"
+
+# 存储空间名称
 bucket_name = "ihome-sz08"
 
 

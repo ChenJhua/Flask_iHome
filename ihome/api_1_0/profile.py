@@ -15,6 +15,57 @@ from ihome.utils.response_code import RET
 from . import api
 
 
+# 实名认证过程
+# 1.人工进行审核
+# 2.调用第三方接口验证真实姓名和身份证号是否一致
+# 3.真实姓名，身份证号，银行卡号
+# 4.真实姓名，身份证号，银行卡号，银行预留手机号
+@api.route("/user/auth", methods=["POST"])
+@login_required
+def set_user_auth():
+    """
+    用户进行实名认证
+    1.接收参数(真实姓名，身份证号)并进行参数校验
+    2.todo: 调用第三方接口验证真实姓名和身份证是否一致
+    3.设置用户实名认证信息
+    4.返回应答，实名认证成功
+    :return:
+    """
+    # 1.接收参数(真实姓名，身份证号)并进行参数校验
+    req_dict = request.json
+    real_name = req_dict.get("real_name")
+    id_card = req_dict.get("id_card")
+
+    if not all([real_name, id_card]):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数不完整")
+
+    # 2.todo: 调用第三方接口验证真实姓名和身份证是否一致
+    # 3.设置用户实名认证信息
+    user_id = g.user_id
+
+    try:
+        user = User.query.get(user_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="查询用户信息失败")
+
+    if not user:
+        return jsonify(errno=RET.USERERR, errmsg="用户不存在")
+
+    user.real_name = real_name
+    user.id_card = id_card
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="保存实名认证信息失败")
+
+    # 4.返回应答，实名认证成功
+    return jsonify(errno=RET.OK, errmsg="实名认证成功")
+
+
 @api.route("/user/name", methods=["PUT"])
 @login_required
 def set_user_name():

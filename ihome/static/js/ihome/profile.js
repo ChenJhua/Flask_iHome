@@ -23,7 +23,7 @@ $(document).ready(function () {
         }else if(resp.errno == "4101"){
             //用户未登录，跳转到登录页面
             location.href = "login.html"
-        } else{
+        }else{
             // 获取失败
             alert(resp.errmsg);
         }
