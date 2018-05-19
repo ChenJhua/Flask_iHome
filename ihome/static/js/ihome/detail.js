@@ -35,6 +35,13 @@ $(document).ready(function(){
             html = template("house-detail-tmpl",{"house": resp.data.house});
             $(".detail-con").html(html);
 
+            // 判断查看详情页面的用户是否是房屋的房东
+            // 如果是，即刻预订按钮不显示，否则显示
+            if(resp.data.house.user_id != resp.data.user_id ){
+                $(".book-house").show();
+                $(".book-house").attr("href", "/booking.html?hid="+resp.data.house.hid);
+            }
+
         }else{
             // 获取房屋信息失败
             alert(resp.errmsg);

@@ -11,6 +11,21 @@ from . import api
 from flask import request, jsonify
 
 
+@api.route("/sessions")
+def check_user_login():
+    """
+    获取登录用户信息：
+    :return:
+    """
+    # 尝试从session中获取user_id和username
+    # 如果取不到，返回空字符串
+    user_id = session.get("user_id", "")
+    username = session.get("username", "")
+
+    # 返回数据
+    return jsonify(errno=RET.OK, errmsg="OK", data={"user_id": user_id, "username": username})
+
+
 @api.route("/sessions", methods=["DELETE"])
 def logout():
     """

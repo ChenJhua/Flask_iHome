@@ -3,6 +3,7 @@
 from flask import current_app, jsonify
 from flask import g
 from flask import request
+from flask import session
 
 from ihome import constants
 from ihome import db
@@ -33,7 +34,10 @@ def get_house_detail(house_id):
         return jsonify(errno=RET.NODATA, errmsg="房屋信息不存在")
 
     # 2.组织数据，返回应答
-    return jsonify(errno=RET.OK, errmsg="OK", data={"houst": house.to_full_dict()})
+    # 尝试从session中获取user_id
+    # 如果用户登录，获取的登录用户的id，如果未登录返回-1
+    user_id = session.get("user_id", -1)
+    return jsonify(errno=RET.OK, errmsg="OK", data={"house": house.to_full_dict(), "user_id": user_id})
 
 
 @api.route("/house/image", methods=["POST"])
