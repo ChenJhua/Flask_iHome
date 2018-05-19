@@ -13,6 +13,29 @@ from ihome.utils.response_code import RET
 from . import api
 
 
+@api.route("/house/<int:house_id>")
+def get_house_detail(house_id):
+    """
+    获取房屋的详情信息
+    1.根据房屋id查询房屋信息
+    2.组织数据，返回应答
+    :param house_id:
+    :return:
+    """
+    # 1.根据房屋id查询房屋信息
+    try:
+        house = House.query.get(house_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="获取房屋信息失败")
+
+    if not house:
+        return jsonify(errno=RET.NODATA, errmsg="房屋信息不存在")
+
+    # 2.组织数据，返回应答
+    return jsonify(errno=RET.OK, errmsg="OK", data={"houst": house.to_full_dict()})
+
+
 @api.route("/house/image", methods=["POST"])
 def save_house_image():
     """
