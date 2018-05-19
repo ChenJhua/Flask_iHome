@@ -51,6 +51,10 @@ def save_house_image():
     house_image.house_id = house_id
     house_image.url = key
 
+    # 判断房屋是否设置了默认图片
+    if not house.index_image_url:
+        house.index_image_url = key
+
     try:
         db.session.add(house_image)
         db.session.commit()
@@ -137,7 +141,7 @@ def save_house_info():
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR, errmsg="保存房屋信息失败")
     # 4. 返回应答，发布房屋信息成功
-    return jsonify(errno=RET.OK, errmsg="发布房屋信息成功")
+    return jsonify(errno=RET.OK, errmsg="发布房屋信息成功", data=house.to_basic_dict())
 
 
 @api.route("/areas")
