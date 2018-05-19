@@ -15,6 +15,34 @@ from ihome.utils.response_code import RET
 from . import api
 
 
+@api.route("/user/auth")
+@login_required
+def get_user_auth():
+    """
+    获取用户的实名认证信息：
+    1. 获取登录用户的id
+    2. 根据登录用户id获取用户的信息
+    3. 组织数据返回应答
+    :return:
+    """
+
+    # 1. 获取登录用户的id
+    user_id = g.user_id
+
+    # 2. 根据登录用户id获取用户的信息
+    try:
+        user = User.query.get(user_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="查询用户信息失败")
+
+    if not user:
+        return jsonify(errno=RET.USERERR, errmsg="用户不存在")
+
+    # 3. 组织数据返回应答
+    return jsonify(errno=RET.OK, errmsg="OK", data=user.auth_to_dict())
+
+
 # 实名认证过程
 # 1.人工进行审核
 # 2.调用第三方接口验证真实姓名和身份证号是否一致

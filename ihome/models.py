@@ -52,6 +52,15 @@ class User(BaseModel, db.Model):
 
         return resp
 
+    def auth_to_dict(self):
+        """将用户的实名认证信息转化为字典"""
+        resp = {
+            "user_id": self.id,
+            "real_name": self.real_name,
+            "id_card": self.id_card,
+        }
+
+        return resp
 
 class Area(BaseModel, db.Model):
     """城区"""
