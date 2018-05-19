@@ -62,6 +62,7 @@ class User(BaseModel, db.Model):
 
         return resp
 
+
 class Area(BaseModel, db.Model):
     """城区"""
 

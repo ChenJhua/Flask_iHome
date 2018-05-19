@@ -80,6 +80,10 @@ def set_user_auth():
     if not user:
         return jsonify(errno=RET.USERERR, errmsg="用户不存在")
 
+    if user.real_name and user.id_card:
+        # 已实名认证
+        return jsonify(errno=RET.DATAEXIST, errmsg="已进行实名认证")
+
     user.real_name = real_name
     user.id_card = id_card
 
