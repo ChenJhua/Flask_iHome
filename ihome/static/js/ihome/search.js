@@ -38,13 +38,25 @@ function updateHouseData(action) {
     var endDate = $("#end-date").val();
     var sortKey = $(".filter-sort>li.active").attr("sort-key");
     var params = {
-        aid:areaId,
-        sd:startDate,
-        ed:endDate,
-        sk:sortKey,
-        p:next_page
+        aid:areaId,  // 地区id
+        sd:startDate,// 搜索起始时间
+        ed:endDate,  // 搜索结束时间
+        sk:sortKey,  // 排序方式
+        p:next_page  // 页码
     };
     // TODO: 获取房屋列表信息
+    $.get("/api/v1.0/houses", params, function (resp) {
+        if(resp.errno == "0"){
+            // 搜索成功
+            var html = template("house-list-tmpl", {"houses": resp.data.houses});
+            $(".house-list").html(html)
+        }else{
+            // 搜索失败
+            alert(resp.errmsg);
+        }
+
+    });
+
 }
 
 $(document).ready(function(){

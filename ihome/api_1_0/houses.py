@@ -1,17 +1,73 @@
 # coding=utf-8
 # 此文件定义和房屋相关api接口
+import json
 from flask import current_app, jsonify
 from flask import g
 from flask import request
 from flask import session
 
-from ihome import constants
+from ihome import constants, redis_store
 from ihome import db
 from ihome.models import Area, House, Facility, HouseImage
 from ihome.utils.commons import login_required
 from ihome.utils.image_storage import storage_image
 from ihome.utils.response_code import RET
 from . import api
+
+
+@api.route("/houses")
+def get_house_list():
+    """
+    搜索房屋的信息
+    :return:
+    """
+    aid = request.args.get("aid")  # 城区id
+    try:
+        if aid:
+            aid = int(aid)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+
+    # 获取所有房屋的信息
+    try:
+        houses_query = House.query
+        # 根据城区id对房屋信息进行过滤
+        if aid:
+            houses_query = houses_query.filter(House.area_id == aid)  # BaseQuery
+
+        # 获取搜索结果
+        houses = houses_query.all()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="获取房屋信息失败")
+    # 组织数据，返回应答
+    house_dict_li = []
+    for house in houses:
+        house_dict_li.append(house.to_basic_dict())
+
+    return jsonify(errno=RET.OK, errmsg="OK", data={"houses": house_dict_li})
+
+
+@api.route("/house/index")
+def get_house_index():
+    """
+    获取首页展示房屋的信息
+    1.获取房屋的信息，按照房屋发布时间进行排序，默认展示前5个
+    2.组织数据，返回应答
+    :return:
+    """
+    # 1.获取房屋的信息，按照房屋发布时间进行排序，默认展示前5个
+    try:
+        houses = House.query.order_by(House.create_time.desc()).limit(constants.HOME_PAGE_MAX_HOUSES).all()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="获取首页房屋信息失败")
+    # 2.组织数据，返回应答
+    house_dict_li = []
+    for house in houses:
+        house_dict_li.append(house.to_basic_dict())
+    return jsonify(errno=RET.OK, errmsg="OK", data=house_dict_li)
 
 
 @api.route("/house/<int:house_id>")
@@ -53,7 +109,7 @@ def save_house_image():
     """
     # 1.接收房屋id和房屋图片对象
     house_id = request.form.get("house_id")
-    file = request.form.get("house_image")
+    file = request.files.get("house_image")
 
     if not all([house_id, file]):
         return jsonify(errno=RET.PARAMERR, errmsg="参数不完整")
@@ -179,6 +235,16 @@ def get_areas_info():
     2. 组织数据，返回应答
     :return:
     """
+    try:
+        # 先尝试从redis缓存中获取缓存的城区信息
+        area_str = redis_store.get("areas")
+        print("从redis中取")
+        # 如果获取到，直接返回，如果获取不到，查询数据库
+        if area_str:
+            return jsonify(errno=RET.OK, errmsg="OK", data=json.loads(area_str))
+    except Exception as e:
+        current_app.logger.error(e)
+
     # 1. 获取所有城区信息
     try:
         areas = Area.query.all()
@@ -190,6 +256,11 @@ def get_areas_info():
     areas_dict_li = []
     for area in areas:
         areas_dict_li.append(area.to_dict())
+    # 缓存城区信息到redis中
+    try:
+        redis_store.set("areas", json.dumps(areas_dict_li), constants.AREA_INFO_REDIS_EXPIRES)
+    except Exception as e:
+        current_app.logger.error(e)
 
     return jsonify(errno=RET.OK, errmsg="OK", data=areas_dict_li)
 
