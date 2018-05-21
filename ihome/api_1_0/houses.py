@@ -22,6 +22,9 @@ def get_house_list():
     :return:
     """
     aid = request.args.get("aid")  # 城区id
+    # new：最新上线 booking：入住最多  price-inc： 价格低->高  price-des：价格高->低
+    sort_key = request.args.get("sk")  # 排序方式,默认按照最新上线排序
+
     try:
         if aid:
             aid = int(aid)
@@ -35,6 +38,19 @@ def get_house_list():
         # 根据城区id对房屋信息进行过滤
         if aid:
             houses_query = houses_query.filter(House.area_id == aid)  # BaseQuery
+        # 对查询结果排序
+        if sort_key == "booking":
+            # 按照房屋订单数量排序
+            houses_query = houses_query.order_by(House.order_count.desc())
+        elif sort_key == "price-inc":
+            # 价格低->高
+            houses_query = houses_query.order_by(House.price)
+        elif sort_key == "price-des":
+            # 价格高->低
+            houses_query = houses_query.order_by(House.price.desc())
+        else:
+            # 按照最新上线进行排序
+            houses_query = houses_query.order_by(House.create_time.desc())
 
         # 获取搜索结果
         houses = houses_query.all()
