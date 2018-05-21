@@ -49,6 +49,15 @@ def get_house_list():
         current_app.logger.error(e)
         return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
 
+    # 尝试从缓存中获取搜索结果
+    try:
+        key = "%s:%s:%s:%s" % (aid, sd, ed, sort_key)
+        res_str = redis_store.hget(key, page)
+        if res_str:
+            return jsonify(errno=RET.OK, errmsg="OK", data=json.loads(res_str))
+    except Exception as e:
+        current_app.logger.error(e)
+
     # 获取所有房屋的信息
     try:
         houses_query = House.query
@@ -110,6 +119,25 @@ def get_house_list():
         "total_page": total_page,
         "current_page": current_page,
     }
+
+    # 在redis中缓存搜索结果
+    try:
+        key = "%s:%s:%s:%s" %(aid, sd, ed, sort_key)
+        # 创建一个redis管道对象
+        pipeline = redis_store.pipeline()
+
+        # 开启redis事务
+        pipeline.multi()
+
+        # 向管道中添加命令
+        pipeline.hset(key, page, json.dumps(resp))
+        pipeline.expire(key, constants.HOUSE_LIST_REDIS_EXPIRES)
+
+        # 执行事务
+        pipeline.execute()
+    except Exception as e:
+        current_app.logger.error(e)
+
     return jsonify(errno=RET.OK, errmsg="OK", data=resp)
 
 
