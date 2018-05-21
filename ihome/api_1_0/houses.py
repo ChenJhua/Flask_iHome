@@ -64,6 +64,8 @@ def get_house_list():
 
         # 获取搜索结果
         houses = paginate.items
+        total_page = paginate.pages  # 分页之后总页数
+        current_page = paginate.page  # 当前页码
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR, errmsg="获取房屋信息失败")
@@ -72,7 +74,12 @@ def get_house_list():
     for house in houses:
         house_dict_li.append(house.to_basic_dict())
 
-    return jsonify(errno=RET.OK, errmsg="OK", data={"houses": house_dict_li})
+    resp = {
+        "houses": house_dict_li,
+        "total_page": total_page,
+        "current_page": current_page,
+    }
+    return jsonify(errno=RET.OK, errmsg="OK", data=resp)
 
 
 @api.route("/house/index")

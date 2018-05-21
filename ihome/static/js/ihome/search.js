@@ -46,10 +46,23 @@ function updateHouseData(action) {
     };
     // TODO: 获取房屋列表信息
     $.get("/api/v1.0/houses", params, function (resp) {
+        // 设置是否正在向后端查询数据的标志为false
+        house_data_querying = false;
         if(resp.errno == "0"){
+            // 设置分页之后结果总页数
+            total_page = resp.data.total_page;
             // 搜索成功
             var html = template("house-list-tmpl", {"houses": resp.data.houses});
-            $(".house-list").html(html)
+            if (action == "renew"){
+                // 清空原有页面的内容并且重新显示
+                $(".house-list").html(html);
+            }else{
+                // 当前页页码加1
+                cur_page += 1;
+                // 将获取房屋信息追加到原有信息的后面
+                $(".house-list").append(html)
+            }
+
         }else{
             // 搜索失败
             alert(resp.errmsg);
