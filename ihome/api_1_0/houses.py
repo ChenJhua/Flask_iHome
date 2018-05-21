@@ -8,12 +8,12 @@ from flask import session
 
 from ihome import constants, redis_store
 from ihome import db
-from ihome.models import Area, House, Facility, HouseImage
+from ihome.models import Area, House, Facility, HouseImage, Order
 from ihome.utils.commons import login_required
 from ihome.utils.image_storage import storage_image
 from ihome.utils.response_code import RET
 from . import api
-
+from datetime import datetime
 
 @api.route("/houses")
 def get_house_list():
@@ -26,15 +26,25 @@ def get_house_list():
     sort_key = request.args.get("sk")  # 排序方式,默认按照最新上线排序
     page = request.args.get("p", 1)  # 页码
 
-    try:
-        page = int(page)
-    except Exception as e:
-        current_app.logger.error(e)
-        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+    sd = request.args.get("sd")  # 搜索起始时间
+    ed = request.args.get("ed")  # 搜索结束时间
+    start_date = None
+    end_date = None
 
     try:
         if aid:
             aid = int(aid)
+        page = int(page)
+
+        # 处理搜索时间
+        if sd:
+            start_date = datetime.strptime(sd, "%Y-%m-%d")
+        if ed:
+            end_date = datetime.strptime(ed, "%Y-%m-%d")
+
+        if start_date and end_date:
+            assert start_date < end_date, Exception("搜索起始时间大于结束时间")
+
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
@@ -45,6 +55,27 @@ def get_house_list():
         # 根据城区id对房屋信息进行过滤
         if aid:
             houses_query = houses_query.filter(House.area_id == aid)  # BaseQuery
+
+        # 排除和搜索时间冲突的房屋信息
+        try:
+            conflict_orders_li = []
+            if start_date and end_date:
+                conflict_orders_li = Order.query.filter(
+                    end_date > Order.begin_date, start_date < Order.end_date).all()
+            elif start_date:
+                conflict_orders_li = Order.query.filter(start_date < Order.end_date).all()
+            elif end_date:
+                conflict_orders_li = Order.query.filter(end_date > Order.begin_date).all()
+
+            if conflict_orders_li:
+                # 获取和搜索时间冲突房屋id列表
+                conflict_houses_id = [order.house_id for order in conflict_orders_li]
+                # 排除冲突房屋信息
+                houses_query = houses_query.filter(House.id.notin_(conflict_houses_id))
+        except Exception as e:
+            current_app.logger.error(e)
+            return jsonify(errno=RET.DBERR, errmsg="排除冲突房屋信息失败")
+
         # 对查询结果排序
         if sort_key == "booking":
             # 按照房屋订单数量排序
