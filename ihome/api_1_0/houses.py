@@ -24,6 +24,13 @@ def get_house_list():
     aid = request.args.get("aid")  # 城区id
     # new：最新上线 booking：入住最多  price-inc： 价格低->高  price-des：价格高->低
     sort_key = request.args.get("sk")  # 排序方式,默认按照最新上线排序
+    page = request.args.get("p", 1)  # 页码
+
+    try:
+        page = int(page)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
 
     try:
         if aid:
@@ -52,8 +59,11 @@ def get_house_list():
             # 按照最新上线进行排序
             houses_query = houses_query.order_by(House.create_time.desc())
 
+        # 进行分页操作
+        paginate = houses_query.paginate(page, constants.HOUSE_LIST_PAGE_CAPACITY, False)
+
         # 获取搜索结果
-        houses = houses_query.all()
+        houses = paginate.items
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR, errmsg="获取房屋信息失败")
