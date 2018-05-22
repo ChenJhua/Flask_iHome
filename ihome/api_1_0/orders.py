@@ -13,6 +13,62 @@ from ihome.utils.response_code import RET
 from . import api
 
 
+# /order/<int:order>/status?action=accept|reject
+@api.route("/order/<int:order_id>/status", methods=["PUT"])
+@login_required
+def update_order_status(order_id):
+    """
+    接单或拒单操作
+    1.获取参数action，如果action==accept,接单 如果action==reject,拒单
+    2.根据订单id查询订单信息(如果查不到，代表订单不存在)
+    3.根据action来修改订单状态
+    4.更新数据表中的数据
+    5.组织数据，返回应答
+    :return:
+    """
+    # 1.获取参数action，如果action==accept,接单 如果action==reject,拒单
+    action = request.args.get("action")
+
+    if not action:
+        return jsonify(errno=RET.PARAMERR, errmsg="缺少参数")
+
+    if action not in("accept", "reject"):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+    # 2.根据订单id查询订单信息(如果查不到，代表订单不存在)
+    try:
+        order = Order.query.filter(Order.id == order_id, Order.status == "WAIT_ACCEPT").first()
+
+        # 判断登录用户是否是订单中对应房屋的房东
+        user_id = g.user_id
+        if order.house.user_id != user_id:
+            return jsonify(errno=RET.DATAERR, errmsg="不是此房屋的房东")
+
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="查询订单失败")
+    # 3.根据action来修改订单状态
+    if action == "accept":
+        # 接单
+        order.status = "WAIT_COMMENT"  # 待评价
+    else:
+        # 拒单
+        order.status = "REJECTED"
+        # 接收拒单原因
+        reason = request.json.get("reason")
+        if not reason:
+            return jsonify(errno=RET.PARAMERR, errmsg="缺少参数")
+
+        order.comment = reason  # 拒单原因
+    # 4.更新数据表中的数据
+    try:
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="接单或拒单失败")
+    # 5.组织数据，返回应答
+    return jsonify(errno=RET.OK, errmsg="OK")
+
+
 # /orders?role=lodger or role=landlord
 # 如果role == lodger,以房客的身份查询自己预订别人房屋的订单信息
 # 如果role == landlord，以房东的身份查询别人预订自己房屋的订单信息
@@ -41,16 +97,16 @@ def get_order_list():
     try:
         if role == "lodger":
             # 1.1role == lodger, 以房客的身份查询自己预订别人房屋的订单信息
-            orders = Order.query.filter(Order.user_id == user_id).order_by(Order.create_time).all()
+            orders = Order.query.filter(Order.user_id == user_id).order_by(Order.create_time.desc()).all()
         else:
             # 1.2role == landlord，以房东的身份查询别人预订自己房屋的订单信息
             # 获取房东的所有房屋信息
-            houses = House.query.filter(House.user_id == user_id)
+            houses = House.query.filter(House.user_id == user_id).all()
             # 获取房东所有房屋的id列表houses_id_li
             houses_id_li = [house.id for house in houses]
 
             # 查询订单对应的房屋id在houses_id_li中的订单信息
-            orders = Order.query.filter(Order.house_id.in_(houses_id_li)).order_by(Order.create_time).all()
+            orders = Order.query.filter(Order.house_id.in_(houses_id_li)).order_by(Order.create_time.desc()).all()
 
 
     except Exception as e:

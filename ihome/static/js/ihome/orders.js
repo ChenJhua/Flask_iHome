@@ -19,13 +19,13 @@ $(document).ready(function(){
     $(window).on('resize', centerModals);
 
     // TODO: 查询房客订单
-    $.get("/api/v1.0/orders", function (resp) {
+    $.get("/api/v1.0/orders?role=lodger", function (resp) {
         if(resp.errno == "0"){
             // 查询成功
-            var html = template("order-list-tmpl", {orders: resp.data});
-            $(".orders-list").html(html)
+            var html = template("orders-list-tmpl", {"orders": resp.data});
+            $(".orders-list").html(html);
         }else if(resp.errno == "4101"){
-            location.href = "login.html"
+            location.href = "login.html";
         }else{
             // 查询失败
             alert(resp.errmsg);
