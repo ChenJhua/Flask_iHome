@@ -23,6 +23,45 @@ $(document).ready(function(){
             // 查询成功
             var html = template("orders-list-tmpl", {"orders": resp.data});
             $(".orders-list").html(html);
+
+            // TODO: 查询成功之后需要设置接单和拒单的处理
+            $(".order-accept").on("click", function(){
+                var orderId = $(this).parents("li").attr("order-id");
+                $(".modal-accept").attr("order-id", orderId);
+            });
+
+            // 接单操作
+            $(".modal-accept").click(function (resp) {
+                // 获取订单id
+                var orderId = $(this).attr("order-id");
+
+                // 接单请求
+                $.ajax({
+                    "url":"/api/v1.0/order/"+orderId+"/status?action=accept",
+                    "type": "put",
+                    "headers": {
+                        "X-CSRFToken": getCookie("csrf_token")
+                    },
+                    "success": function (resp) {
+                        if(resp.errno == "0"){
+                            //接单成功
+                            // 1. 设置订单状态的html
+                            $(".orders-list>li[order-id="+ orderId +"]>div.order-content>div.order-text>ul li:eq(4)>span").html("已接单");
+                            // 2. 隐藏接单和拒单操作
+                            $("ul.orders-list>li[order-id="+ orderId +"]>div.order-title>div.order-operate").hide();
+                            // 3. 隐藏弹出的框
+                            $("#accept-modal").modal("hide");
+                        }else if(resp.errno == "4101"){
+                            location.href = "login.html"
+                        }else{
+                            // 接单失败
+                            alert(resp.errmsg);
+                        }
+                    }
+                })
+
+            });
+
         }else if(resp.errno == "4101"){
             location.href = "login.html";
         }else{
@@ -32,11 +71,7 @@ $(document).ready(function(){
 
     });
 
-    // TODO: 查询成功之后需要设置接单和拒单的处理
-    $(".order-accept").on("click", function(){
-        var orderId = $(this).parents("li").attr("order-id");
-        $(".modal-accept").attr("order-id", orderId);
-    });
+
     $(".order-reject").on("click", function(){
         var orderId = $(this).parents("li").attr("order-id");
         $(".modal-reject").attr("order-id", orderId);
