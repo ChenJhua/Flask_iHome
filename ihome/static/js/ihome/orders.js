@@ -24,6 +24,56 @@ $(document).ready(function(){
             // 查询成功
             var html = template("orders-list-tmpl", {"orders": resp.data});
             $(".orders-list").html(html);
+
+            // TODO: 查询成功之后需要设置评论的相关处理
+            $(".order-comment").on("click", function(){
+                var orderId = $(this).parents("li").attr("order-id");
+                $(".modal-comment").attr("order-id", orderId);
+            });
+
+            // 订单评论
+            $(".modal-comment").click(function (resp) {
+                // 获取订单id
+                var orderId = $(this).attr("order-id");
+
+                var comment = $("#comment").val();
+                if(!comment){
+                    alert("请输入评论信息！");
+                    return;
+                }
+
+                var params = {
+                    "comment": comment
+                }
+
+                $.ajax({
+                    "url":"/api/v1.0/order/"+orderId+"/comment",
+                    "type": "put",
+                    "data": JSON.stringify(params),
+                    "contentType": "application/json",
+                    "headers": {
+                        "X-CSRFToken": getCookie("csrf_token")
+                    },
+                    "success": function (resp) {
+                        if(resp.errno == "0"){
+                            // 评价成功
+                            // 设置页面上的订单状态
+                            $(".orders-list>li[order-id="+ orderId +"]>div.order-content>div.order-text>ul li:eq(4)>span").html("已完成");
+                            // 隐藏评价按钮
+                            $("ul.orders-list>li[order-id="+ orderId +"]>div.order-title>div.order-operate").hide();
+                            // 隐藏弹出框
+                            $("#comment-modal").modal("hide");
+                        }else if(resp.errno == "4101"){
+                            location.href = "login.html"
+                        }else{
+                            // 评价失败
+                            alert(resp.errmsg);
+                        }
+                    }
+                })
+
+            });
+
         }else if(resp.errno == "4101"){
             location.href = "login.html";
         }else{
@@ -33,9 +83,5 @@ $(document).ready(function(){
 
     });
 
-    // TODO: 查询成功之后需要设置评论的相关处理
-    $(".order-comment").on("click", function(){
-        var orderId = $(this).parents("li").attr("order-id");
-        $(".modal-comment").attr("order-id", orderId);
-    });
+
 });

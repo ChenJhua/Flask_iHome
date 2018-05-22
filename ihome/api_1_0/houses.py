@@ -15,6 +15,31 @@ from ihome.utils.response_code import RET
 from . import api
 from datetime import datetime
 
+
+@api.route("/user/houses")
+@login_required
+def get_user_houses():
+    """
+    获取用户发布的房屋信息
+    1.根据登录用户的id获取用户的所有房屋信息
+    2.组织数据，返回应答
+    :return:
+    """
+    user_id = g.user_id
+    # 1.根据登录用户的id获取用户的所有房屋信息
+    try:
+        houses = House.query.filter(House.user_id == user_id).all()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="查询房屋信息失败")
+    # 2.组织数据，返回应答
+    house_dict_li = []
+    for house in houses:
+        house_dict_li.append(house.to_basic_dict())
+
+    return jsonify(errno=RET.OK, errmsg="OK", data=house_dict_li)
+
+
 @api.route("/houses")
 def get_house_list():
     """
