@@ -1,8 +1,9 @@
 # coding=utf-8
 # 此文件中定义和订单相关api接口
-import datetime
+from datetime import datetime
 
 from flask import current_app
+from flask import g
 from flask import request, jsonify
 
 from ihome import db
@@ -10,6 +11,81 @@ from ihome.models import House, Order
 from ihome.utils.commons import login_required
 from ihome.utils.response_code import RET
 from . import api
+
+
+# /orders?role=lodger or role=landlord
+# 如果role == lodger,以房客的身份查询自己预订别人房屋的订单信息
+# 如果role == landlord，以房东的身份查询别人预订自己房屋的订单信息
+@api.route("/orders")
+@login_required
+def get_order_list():
+    """
+    获取用户的订单信息
+    1.获取用户的角色role
+        1.1role == lodger,以房客的身份查询自己预订别人房屋的订单信息
+        1.2role == landlord，以房东的身份查询别人预订自己房屋的订单信息
+    2.组织数据返回应答
+    :return:
+    """
+    # 1.获取用户的角色role
+    role = request.args.get("role")
+
+    if not role:
+        return jsonify(errno=RET.PARAMERR, errmsg="缺少参数")
+
+    if role not in ("lodger", "landlord"):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+
+    user_id = g.user_id
+
+    try:
+        if role == "lodger":
+            # 1.1role == lodger, 以房客的身份查询自己预订别人房屋的订单信息
+            orders = Order.query.filter(Order.user_id == user_id).order_by(Order.create_time).all()
+        else:
+            # 1.2role == landlord，以房东的身份查询别人预订自己房屋的订单信息
+            # 获取房东的所有房屋信息
+            houses = House.query.filter(House.user_id == user_id)
+            # 获取房东所有房屋的id列表houses_id_li
+            houses_id_li = [house.id for house in houses]
+
+            # 查询订单对应的房屋id在houses_id_li中的订单信息
+            orders = Order.query.filter(Order.house_id.in_(houses_id_li)).order_by(Order.create_time).all()
+
+
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="查询订单信息失败")
+    # 2.组织数据返回应答
+    order_dict_li = []
+    for order in orders:
+        order_dict_li.append(order.to_dict())
+
+    return jsonify(errno=RET.OK, errmsg="OK", data=order_dict_li)
+
+# @api.route("/orders")
+# @login_required
+# def get_order_list():
+#     """
+#     获取用户的订单信息
+#     1.根据登录用户的id查询用户的订单信息
+#     2.组织数据返回应答
+#     :return:
+#     """
+#     user_id = g.user_id
+#     # 1.根据登录用户的id查询用户的订单信息
+#     try:
+#         orders = Order.query.filter(Order.user_id == user_id).order_by(Order.create_time).all()
+#     except Exception as e:
+#         current_app.logger.error(e)
+#         return jsonify(errno=RET.DBERR, errmsg="查询订单信息失败")
+#     # 2.组织数据返回应答
+#     order_dict_li = []
+#     for order in orders:
+#         order_dict_li.append(order.to_dict())
+#
+#     return jsonify(errno=RET.OK, errmsg="OK", data=order_dict_li)
+
 
 
 @api.route("/orders", methods=["POST"])
@@ -51,6 +127,15 @@ def save_order_info():
 
     if not house:
         return jsonify(errno=RET.NODATA, errmsg="房屋信息未找到")
+    # 判断此房屋是否已经被预订
+    try:
+        conflict_count = Order.query.filter(end_date > Order.begin_date, start_date < Order.end_date, Order.house_id == house_id).count()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="获取冲突订单信息失败")
+
+    if conflict_count > 0:
+        return jsonify(errno=RET.DATAERR, errmsg="房屋已被预订")
     # 3.创建一个Order对象并保存订单信息
     order = Order()
     days = (end_date - start_date).days  # timedelat

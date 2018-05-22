@@ -53,14 +53,15 @@ def send_sms_code():
     # 4.使用云通讯发送短信验证码
     # 4.1随机生成一个6位短信验证码
     sms_code = "%06d" % random.randint(0, 999999)
-    try:
-        res = CCP().send_template_sms(mobile, [sms_code, constants.SMS_CODE_REDIS_EXPIRES/60], 1)
-    except Exception as e:
-        current_app.logger.error(e)
-        return jsonify(errno=RET.THIRDERR, errmsg="发送短信失败")
-    if res != 1:
-        # 发送短信验证码失败
-        return jsonify(errno=RET.THIRDERR, errmsg="发送短信验证码失败")
+    current_app.logger.info("短信验证码是:%s" % sms_code)
+    # try:
+    #     res = CCP().send_template_sms(mobile, [sms_code, constants.SMS_CODE_REDIS_EXPIRES/60], 1)
+    # except Exception as e:
+    #     current_app.logger.error(e)
+    #     return jsonify(errno=RET.THIRDERR, errmsg="发送短信失败")
+    # if res != 1:
+    #     # 发送短信验证码失败
+    #     return jsonify(errno=RET.THIRDERR, errmsg="发送短信验证码失败")
     # 4.3 在redis中保存短信验证码内容
     try:
         redis_store.set("smscode:%s" % mobile, sms_code, constants.SMS_CODE_REDIS_EXPIRES)
@@ -89,6 +90,7 @@ def get_image_code():
     # 产生图片验证码
     # 文本名称 验证码文本 验证码图片内容
     name, text, content = captcha.captcha.generate_captcha()
+    current_app.logger.info("图片验证码是:%s" % text)
 
     # 3.再redis中保存图片验证码
     # redis_store.set("key", "value", "expires")

@@ -52,7 +52,7 @@ $(document).ready(function(){
         } else {
             var sd = new Date(startDate);
             var ed = new Date(endDate);
-            days = (ed - sd)/(1000*3600*24) + 1;
+            days = (ed - sd)/(1000*3600*24);
             var price = $(".house-text>p>span").html();
             var amount = days * parseFloat(price);
             $(".order-amount>span").html(amount.toFixed(2) + "(共"+ days +"晚)");
@@ -69,7 +69,7 @@ $(document).ready(function(){
             $(".house-info>img").attr("src", resp.data.house.img_urls[0]);
             // 设置房屋的价格和标题
             $(".house-text>h3").html(resp.data.house.title);
-            $(".house-text span").html(resp.data.house.price);
+            $(".house-text span").html(resp.data.house.price/100);
         }else{
             // 失败
             alert(resp.errmsg);
@@ -78,4 +78,45 @@ $(document).ready(function(){
     });
 
     // TODO: 订单提交
-})
+    $(".submit-btn").click(function () {
+        // 获取参数
+        var start_date = $("#start-date").val();
+        var end_date = $("#end-date").val();
+
+        if(!start_date || !end_date){
+            alert("请选择预订时间");
+            return;
+        }
+
+        // 组织参数
+        var params = {
+            "house_id": houseId,
+            "start_date": start_date,
+            "end_date": end_date,
+        }
+
+        // 请求预订房屋
+        $.ajax({
+            "url":"/api/v1.0/orders",
+            "type": "post",
+            "data": JSON.stringify(params),
+            "contentType": "application/json",
+            "headers": {
+                "X-CSRFToken": getCookie("csrf_token")
+            },
+            "success": function (resp) {
+                if(resp.errno == "0"){
+                    // 房屋预订成功
+                    location.href = "orders.html"
+                }else if(resp.errno == "4101"){
+                    location.href = "login.html"
+                }else{
+                    // 房屋预订失败
+                    alert(resp.errmsg);
+                }
+            }
+        })
+
+    })
+
+});
