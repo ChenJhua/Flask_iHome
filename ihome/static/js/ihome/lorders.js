@@ -62,6 +62,51 @@ $(document).ready(function(){
 
             });
 
+            // 拒单按钮存储订单id
+            $(".order-reject").on("click", function(){
+                var orderId = $(this).parents("li").attr("order-id");
+                $(".modal-reject").attr("order-id", orderId);
+            });
+
+            // 拒单操作
+            $(".modal-reject").click(function (resp) {
+                // 获取订单id
+                var orderId = $(this).attr("order-id");
+                // 获取拒单原因
+                var reason = $("#reject-reason").val();
+
+                var params = {
+                    "reason": reason
+                };
+                // 请求拒单
+                $.ajax({
+                    "url":"/api/v1.0/order/"+orderId+"/status?action=reject",
+                    "type": "put",
+                    "data": JSON.stringify(params),
+                    "contentType": "application/json",
+                    "headers": {
+                        "X-CSRFToken": getCookie("csrf_token")
+                    },
+                    "success": function (resp) {
+                        if(resp.errno == "0"){
+                            // 拒单成功
+                            // 1. 设置订单状态的html
+                            $(".orders-list>li[order-id="+ orderId +"]>div.order-content>div.order-text>ul li:eq(4)>span").html("已拒单");
+                            // 2. 隐藏接单和拒单操作
+                            $("ul.orders-list>li[order-id="+ orderId +"]>div.order-title>div.order-operate").hide();
+                            // 3. 隐藏弹出的框
+                            $("#reject-modal").modal("hide");
+                        }else if(resp.errno == "4101"){
+                            location.href = "login.html"
+                        }else{
+                            // 拒单失败
+                            alert(resp.errmsg);
+                        }
+                    }
+                })
+
+            })
+
         }else if(resp.errno == "4101"){
             location.href = "login.html";
         }else{
@@ -72,8 +117,5 @@ $(document).ready(function(){
     });
 
 
-    $(".order-reject").on("click", function(){
-        var orderId = $(this).parents("li").attr("order-id");
-        $(".modal-reject").attr("order-id", orderId);
-    });
+
 });
