@@ -13,6 +13,44 @@ from ihome.utils.response_code import RET
 from . import api
 
 
+@api.route("/order/<int:order_id>/comment", methods=["PUT"])
+def save_order_comment(order_id):
+    """
+    保存订单评论信息
+    1.获取订单的评论信息
+    2.根据订单id查询订单信息（如果查不到，代表订单不存在）
+    3.设置订单的评论信息
+    4.更新数据表中的数据
+    5.返回应答
+    :return:
+    """
+    # 1.获取订单的评论信息
+    comment = request.json.get("comment")
+
+    if not comment:
+        return jsonify(errno=RET.PARAMERR, errmsg="缺少参数")
+    # 2.根据订单id查询订单信息（如果查不到，代表订单不存在）
+    try:
+        order = Order.query.filter(Order.id == order_id, Order.status == "WAIT_COMMENT", Order.user_id == g.user_id).first()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="查询订单失败")
+
+    if not order:
+        return jsonify(errno=RET.NODATA, errmsg="订单不存在")
+    # 3.设置订单的评论信息
+    order.comment = comment
+    order.status = "COMPLETE"
+    # 4.更新数据表中的数据
+    try:
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="保存订单评论信息失败")
+    # 5.返回应答
+    return jsonify(errno=RET.OK, errmsg="OK")
+
+
 # /order/<int:order>/status?action=accept|reject
 @api.route("/order/<int:order_id>/status", methods=["PUT"])
 @login_required
